@@ -120,13 +120,21 @@ CREATE INDEX tooth_records_timeline_idx ON tooth_records (patient_id, tooth_numb
 CREATE TABLE audit_logs (
     log_id SERIAL PRIMARY KEY,
     patient_id INT REFERENCES patients(patient_id) ON DELETE RESTRICT,
-    user_id INT REFERENCES users(id) ON DELETE RESTRICT,
+    user_id INT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
     record_id INT REFERENCES tooth_records(record_id) ON DELETE RESTRICT,
     edit_id INT REFERENCES staged_edits(edit_id) ON DELETE RESTRICT,
     action VARCHAR(50) NOT NULL
             CHECK (action IN ('LOGIN', 'LOGIN_FAILED', 'SEARCH', 'VIEW', 'CREATE', 'UPDATE', 'ARCHIVE', 'STAGE_EDIT', 'APPROVE_EDIT', 'REJECT_EDIT')),
     action_description TEXT NOT NULL, -- Should never use PHI values
-    timestamp TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+    timestamp TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+-- FR-1.4: every audit entry must capture the user and
+-- record-modifying actions must also reference the specific record or staged edit that changed.
+    CHECK (
+        (action IN ('LOGIN', 'LOGIN_FAILED', 'SEARCH', 'VIEW')) OR
+        (action IN ('CREATE', 'UPDATE', 'ARCHIVE', 'STAGE_EDIT', 'APPROVE_EDIT', 'REJECT_EDIT')
+         AND (record_id IS NOT NULL OR edit_id IS NOT NULL))
+    )
 );
 
 -- Index rows first by patient_id, then by timestamp.
