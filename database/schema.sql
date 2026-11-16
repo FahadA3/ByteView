@@ -51,7 +51,7 @@ CREATE TABLE staged_edits (
 -- Each payload must be a non-empty object.
     CHECK (jsonb_typeof(edit_payload) = 'object'),
     CHECK (edit_payload <> '{}'::jsonb),
-    CHECK (edit_payload - 'gum_decay' - 'symptom_notes' = '{}'::jsonb),
+    CHECK (edit_payload - 'gum_decay' - 'symptom_notes' - 'symptom_codes' = '{}'::jsonb),
 
 -- Only a decided edit will record who decided/when, while a staged edit will not.
     CHECK (
@@ -66,20 +66,45 @@ CREATE TABLE staged_edits (
 -- Partial index for only staged, faster queries for staged queue
 CREATE INDEX staged_edits_queue_idx ON staged_edits (patient_id) WHERE status = 'Staged';
 
+-- Symptoms Table (reference data: 15 commonly reported dental symptoms)
+CREATE TABLE symptoms (
+    shorthand VARCHAR(4) PRIMARY KEY,
+    formal_name VARCHAR(100) NOT NULL,
+    description TEXT NOT NULL
+);
+
+INSERT INTO symptoms (shorthand, formal_name, description) VALUES
+    ('TACH', 'Toothache', 'Pain in or around a tooth; record location, intensity, and type.'),
+    ('SENS', 'Sensitivity', 'Short, sharp pain from cold, heat, sweets, or air on exposed dentin.'),
+    ('PAIN', 'Pain on biting', 'Pain when chewing or on percussion; often inflammation at the root tip.'),
+    ('CARS', 'Caries', 'Destruction of enamel or dentin by bacteria (tooth decay).'),
+    ('FRAC', 'Cracked or fractured tooth', 'Crack line or broken piece of tooth structure.'),
+    ('LOOS', 'Loose tooth', 'Abnormal tooth movement, usually from bone loss; graded 0–3.'),
+    ('LOST', 'Broken or lost restoration', 'Fractured, defective or missing filling or crown.'),
+    ('DISC', 'Discoloration', 'Staining or color change of the tooth after eruption.'),
+    ('SWEL', 'Abscess or swelling', 'Infection at the root tip, with or without a draining sinus tract.'),
+    ('BLED', 'Bleeding gums', 'Bleeding on brushing or probing.'),
+    ('GING', 'Gingivitis', 'Red, swollen gums without bone loss.'),
+    ('POCK', 'Recession or deep pockets', 'Gum pulling back from the tooth, or probing depth over 3 mm.'),
+    ('BADB', 'Halitosis', 'Persistent bad breath.'),
+    ('DRYM', 'Dry mouth', 'Reduced saliva flow (xerostomia).'),
+    ('JAWP', 'Jaw pain or bruxism', 'TMJ pain or clicking, or tooth wear from clenching or grinding.');
+
 -- Tooth_Record Table (32-tooth visualizer data)
 CREATE TABLE tooth_records (
     record_id SERIAL PRIMARY KEY,
     patient_id INT NOT NULL REFERENCES patients(patient_id) ON DELETE RESTRICT,
     tooth_number INT CHECK (tooth_number BETWEEN 1 AND 32),         -- NULL = whole mouth
     gum_decay NUMERIC(3, 1) CHECK (gum_decay BETWEEN 0.0 AND 10.0), -- NULL = not measured
-    symptom_notes TEXT CHECK (symptom_notes LIKE 'gAAAAA%'),
+    symptom_notes TEXT CHECK (symptom_notes LIKE 'gAAAAA%'),         -- Fernet Encrypted
+    symptom_codes TEXT[],                                            -- Symptom shorthands from symptoms table
     user_id INT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
     edit_id INT UNIQUE REFERENCES staged_edits(edit_id) ON DELETE RESTRICT, -- NULL = dentist entered it directly
     start_date TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     change_date TIMESTAMPTZ,
 
 -- Both should not be NULL, otherwise the record is empty.
-    CHECK (gum_decay IS NOT NULL OR symptom_notes IS NOT NULL),
+    CHECK (gum_decay IS NOT NULL OR symptom_notes IS NOT NULL OR symptom_codes IS NOT NULL),
     CHECK (change_date IS NULL OR change_date >= start_date)
 );
 
