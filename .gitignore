@@ -1,0 +1,13 @@
+.env
+.env.local
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyc
+.DS_Store
+instance/
+*.log
+.webassets-cache
+.ipynb_checkpoints
