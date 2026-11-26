@@ -1,37 +1,40 @@
-from flask_sqlalchemy import SQLAlchemy
-ROOT = '/record'
+from flask import Blueprint, request, jsonify, g
+from app.auth import require_auth, require_role
+from app.db import db
 
+bp = Blueprint('review', __name__, url_prefix = '/review')
+
+@bp.route('/staging/queue', methods =['GET'])
 @require_auth
 @require_role('Dentist')
-@app.route(ROOT + '/staging/queue', methods =[GET])
 def staging_queue():
     # Implement your staging queue logic here
     pass
 
+@bp.route('/review/<int:edit_id>', methods =['GET'])
 @require_auth
 @require_role('Dentist')
-@app.route(ROOT + '/review/<int:edit_id>', methods =[GET])
 def get_staging_queue():
     # Implement your staging queue logic here
     pass
 
+@bp.route('/<int:edit_id>', methods =['PUT'])
 @require_auth
 @require_role('Dentist')
-@app.route(ROOT + '/<int:edit_id>', methods =[PUT])
 def edit(edit_id):
     # Implement your edit logic here
     pass
 
+@bp.route('/<int:edit_id>/approve', methods =['POST'])
 @require_auth
 @require_role('Dentist')
-@app.route(ROOT + '/<int:edit_id>/approve', methods =[POST])
 def approve(edit_id):
     # Implement your approve logic here
     pass
 
+@bp.route('/<int:edit_id>/reject', methods =['POST'])
 @require_auth
 @require_role('Dentist')
-@app.route(ROOT + '<int:edit_id>/reject', methods =[POST])
 def reject(edit_id):
     # Implement your reject logic here
     pass

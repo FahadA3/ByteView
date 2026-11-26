@@ -1,39 +1,29 @@
-from flask_sqlalchemy import SQLAlchemy
+from flask import Blueprint, request, jsonify, g
+from app.auth import require_auth
+from app.db import db
 
-ROOT = '/record'
+bp = Blueprint('record', __name__, url_prefix = '/record')
 
+@bp.route('/<int:patient_id>', methods =['GET'])
 @require_auth
-@app.route(ROOT + '<int:patient_id>', methods =[GET])
 def get_record(patient_id): 
     # Implement your register logic here
     pass
 
+@bp.route('/<int:patient_id>/symptoms', methods =['POST'])
 @require_auth
-@app.route(ROOT + '/record/<int:patient_id>/mouth/symptoms', methods =[GET])
-def add_symptom(patient_id):
-    # Implement your add symptom logic here
-    pass
-
-@require_auth
-@app.route(ROOT + '/<int:patient_id>/symptoms', methods =[POST])
-def get_mouth_symptoms(patient_id):
-    # Implement your get mouth symptoms logic here
-    pass
-
-@require_auth
-@app.route(ROOT + '/<int:patient_id>/symptoms', methods =[POST])
 def add_symptom(patient_id): 
     # Implement your register logic here
     pass
 
+@bp.route('/<int:patient_id>/tooth/<int:tooth_number>', methods =['GET'])
 @require_auth
-@app.route(ROOT + '<int:patient_id/tooth/<int:tooth_number>', methods =[GET])
-def get_tooth(patient_id): 
+def get_tooth(patient_id, tooth_number): 
     # Implement your register logic here
     pass
 
+@bp.route('/<int:patient_id>/tooth/<int:tooth_number>/history', methods =['GET'])
 @require_auth
-@app.route(ROOT + '<int:patient_id/tooth/<int:tooth_number>/history', methods =[GET])
-def get_tooth_history(patient_id): 
+def get_tooth_history(patient_id, tooth_number):
     # Implement your register logic here
     pass
