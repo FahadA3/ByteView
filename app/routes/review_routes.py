@@ -11,10 +11,10 @@ def staging_queue():
     # Implement your staging queue logic here
     pass
 
-@bp.route('/review/<int:edit_id>', methods =['GET'])
+@bp.route('/<int:edit_id>', methods =['GET'])
 @require_auth
 @require_role('Dentist')
-def get_staging_queue():
+def get_staged_edit(edit_id):
     # Implement your staging queue logic here
     pass
 
