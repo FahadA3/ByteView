@@ -1,5 +1,5 @@
 from flask import Blueprint
-from app.auth import require_auth
+from app.auth import require_auth, require_role
 from app.db import db
 
 bp = Blueprint('patients', __name__, url_prefix = '/patients')
